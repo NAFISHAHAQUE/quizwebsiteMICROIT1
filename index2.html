@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(to bottom, #170329, #ae3b9b, #f3e8ff);
+            position: relative;
+            overflow-x: hidden;
+        }
+        .flower-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .flower {
+            position: absolute;
+            width: 20px;
+            height: 27px;
+            background: url('https://img.icons8.com/emoji/48/000000/cherry-blossom.png') no-repeat center center;
+            background-size: contain;
+            animation: fall linear infinite;
+            opacity: 0.7;
+        }
+        @keyframes fall {
+            0% {
+                transform: translateY(-10vh) rotate(0deg);
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(110vh) rotate(360deg);
+                opacity: 0.3;
+            }
+        }
+        .category-box, .option-box {
+            transition: filter 0.2s;
+            z-index: 1; 
+        }
+        .category-box:hover, .option-box:hover {
+            filter: brightness(1.2);
+        }
+        .option-box.correct {
+            background-color: #34D399 !important;
+            color: white;
+        }
+        .option-box.incorrect {
+            background-color: #EF4444 !important;
+            color: white;
+        }
+        #timer {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #440a3a; 
+        }
+       
+        .option-image {
+            width: 90px;
+            height: 70px;
+            border-radius: 0.25rem;
+            object-fit: cover;
+            margin-right: 1rem;
+        }
+        
+        #popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .popup-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen text-white">
+    
+    <div class="flower-container" id="flower-container"></div>
+
+    
+    <div id="category-screen">
+        <h1 class="text-5xl font-bold text-white mb-2 drop-shadow-lg">Quizzypop ✨</h1>
+        <h2 class="text-4xl font-bold text-white mb-2 drop-shadow-lg">Test your Knowledge!</h2>
+        <p class="text-lg text-gray-200 mb-8 drop-shadow">Select a category</p>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-w-4xl">
+            <div class="category-box bg-white/90 backdrop-blur-sm border-2 border-blue-300 rounded-lg p-4 flex flex-col items-center cursor-pointer shadow-lg" onclick="selectCategory('General Knowledge')">
+                <span class="text-4xl mb-2">🎓</span>
+                <span class="text-blue-600 font-semibold">General Knowledge</span>
+            </div>
+            <div class="category-box bg-white/90 backdrop-blur-sm border-2 border-blue-300 rounded-lg p-4 flex flex-col items-center cursor-pointer shadow-lg" onclick="selectCategory('Food & Drink')">
+                <span class="text-4xl mb-2">🍔</span>
+                <span class="text-blue-600 font-semibold">Food & Drink</span>
+            </div>
+            <div class="category-box bg-white/90 backdrop-blur-sm border-2 border-blue-300 rounded-lg p-4 flex flex-col items-center cursor-pointer shadow-lg" onclick="selectCategory('Health')">
+                <span class="text-4xl mb-2">❤️</span>
+                <span class="text-blue-600 font-semibold">Health</span>
+            </div>
+            <div class="category-box bg-white/90 backdrop-blur-sm border-2 border-blue-300 rounded-lg p-4 flex flex-col items-center cursor-pointer shadow-lg" onclick="selectCategory('Books')">
+                <span class="text-4xl mb-2">📚</span>
+                <span class="text-blue-600 font-semibold">Books</span>
+            </div>
+            <div class="category-box bg-white/90 backdrop-blur-sm border-2 border-blue-300 rounded-lg p-4 flex flex-col items-center cursor-pointer shadow-lg" onclick="selectCategory('Films')">
+                <span class="text-4xl mb-2">🎬</span>
+                <span class="text-blue-600 font-semibold">Films</span>
+            </div>
+            <div class="category-box bg-white/90 backdrop-blur-sm border-2 border-blue-300 rounded-lg p-4 flex flex-col items-center cursor-pointer shadow-lg" onclick="selectCategory('Music')">
+                <span class="text-4xl mb-2">🎵</span>
+                <span class="text-blue-600 font-semibold">Music</span>
+            </div>
+            <div class="category-box bg-white/90 backdrop-blur-sm border-2 border-blue-300 rounded-lg p-4 flex flex-col items-center cursor-pointer shadow-lg" onclick="selectCategory('Theatre')">
+                <span class="text-4xl mb-2">🎭</span>
+                <span class="text-blue-600 font-semibold">Theatre</span>
+            </div>
+            <div class="category-box bg-white/90 backdrop-blur-sm border-2 border-blue-300 rounded-lg p-4 flex flex-col items-center cursor-pointer shadow-lg" onclick="selectCategory('Television')">
+                <span class="text-4xl mb-2">📺</span>
+                <span class="text-blue-600 font-semibold">Television</span>
+            </div>
+            <div class="category-box bg-white/90 backdrop-blur-sm border-2 border-blue-300 rounded-lg p-4 flex flex-col items-center cursor-pointer shadow-lg" onclick="selectCategory('Video Games')">
+                <span class="text-4xl mb-2">🎮</span>
+                <span class="text-blue-600 font-semibold">Video Games</span>
+            </div>
+            <div class="category-box bg-white/90 backdrop-blur-sm border-2 border-blue-300 rounded-lg p-4 flex flex-col items-center cursor-pointer shadow-lg" onclick="selectCategory('Board Games')">
+                <span class="text-4xl mb-2">♟️</span>
+                <span class="text-blue-600 font-semibold">Board Games</span>
+            </div>
+            <div class="category-box bg-white/90 backdrop-blur-sm border-2 border-blue-300 rounded-lg p-4 flex flex-col items-center cursor-pointer shadow-lg" onclick="selectCategory('Science & Nature')">
+                <span class="text-4xl mb-2">🔬</span>
+                <span class="text-blue-600 font-semibold">Science & Nature</span>
+            </div>
+            <div class="category-box bg-white/90 backdrop-blur-sm border-2 border-blue-300 rounded-lg p-4 flex flex-col items-center cursor-pointer shadow-lg" onclick="selectCategory('Computers')">
+                <span class="text-4xl mb-2">💻</span>
+                <span class="text-blue-600 font-semibold">Computers</span>
+            </div>
+        </div>
+    </div>
+    <div id="quiz-screen" class="hidden flex flex-col items-center">
+        <h1 class="text-5xl font-bold text-white mb-2 drop-shadow-lg">Quizzypop ✨</h1>
+        <h2 id="category-title" class="text-3xl font-bold text-white mb-4 drop-shadow-lg"></h2>
+        <div id="question-container" class="bg-white/90 backdrop-blur-sm p-6 rounded-lg shadow-md w-full max-w-lg">
+            <p id="timer" class="text-center mb-2"></p>
+            <p id="question-text" class="text-lg font-semibold mb-4 text-gray-800"></p>
+            <div id="options" class="grid grid-cols-1 gap-2"></div>
+        </div>
+        <div class="mt-4 flex space-x-4">
+            <button id="back-btn" class="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">Back</button>
+            <button id="next-btn" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 hidden">Next</button>
+        </div>
+    </div>
+    <div id="result-screen" class="hidden flex flex-col items-center">
+        <h1 class="text-5xl font-bold text-white mb-2 drop-shadow-lg">Quizzypop ✨</h1>
+        <h2 class="text-3xl font-bold text-white mb-4 drop-shadow-lg">Quiz Complete!</h2>
+        <p id="score-text" class="text-lg mb-4 text-gray-200 drop-shadow"></p>
+        <button onclick="restartQuiz()" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Back to Categories</button>
+    </div>
+
+    <!-- Popup -->
+    <div id="popup">
+        <div class="popup-content">
+            <p class="text-lg text-gray-800 mb-4">Do you want to exit the quiz?</p>
+            <div class="flex justify-center space-x-4">
+                <button id="popup-yes" class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">Yes</button>
+                <button id="popup-no" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const flowerContainer = document.getElementById('flower-container');
+        const flowerCount = 30; 
+
+        for (let i = 0; i < flowerCount; i++) {
+            const flower = document.createElement('div');
+            flower.className = 'flower';
+            flower.style.left = `${Math.random() * 100}vw`; 
+            flower.style.animationDuration = `${Math.random() * 5 + 5}s`; 
+            flower.style.animationDelay = `${Math.random() * 3}s`; 
+            const hue = Math.floor(Math.random() * 2000) + 900; 
+            const color = `hsl(0, 0%, 0%)`;
+            flower.style.filter = `hue-rotate(${hue}deg)`;
+            flowerContainer.appendChild(flower);
+        }
+        const quizData = {
+            "General Knowledge": [
+                {
+                    question: "What is the capital of France?",
+                    options: [
+                        { text: "Paris", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34" },
+                        { text: "London", image: "https://tse3.mm.bing.net/th?id=OIP.iOvgfallNS5WDowvrhB4mwHaE7&pid=Api&P=0&h=180" },
+                        { text: "Berlin", image: "https://wallpaperaccess.com/full/775660.jpg" },
+                        { text: "Madrid", image: "https://tse3.mm.bing.net/th?id=OIP.xh2nK3gWxr40rJp_GhTy4QHaE8&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Paris"
+                },
+                {
+                    question: "Which planet is known as the Red Planet?",
+                    options: [
+                        { text: "Jupiter", image: "https://tse4.mm.bing.net/th?id=OIP.suQFDLLMKPAPMLE1-OjtYwHaHa&pid=Api&P=0&h=180" },
+                        { text: "Mars", image: "https://tse3.mm.bing.net/th?id=OIP.ZahdYtqw9ZFMwBETtb5RkwHaHx&pid=Api&P=0&h=180" },
+                        { text: "Venus", image: "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4" },
+                        { text: "Mercury", image: "https://images.unsplash.com/photo-1614732414444-096e5f1122d5" }
+                    ],
+                    answer: "Mars"
+                },
+                {
+                    question: "Who painted the Mona Lisa?",
+                    options: [
+                        { text: "Vincent van Gogh", image: "https://tse4.mm.bing.net/th?id=OIP.33EHx_RJx9zfrSkCWwoiJQHaJs&pid=Api&P=0&h=180" },
+                        { text: "Pablo Picasso", image: "https://tse3.mm.bing.net/th?id=OIP.TxPs-OzhDaYCGMYrW13KKgHaI1&pid=Api&P=0&h=180" },
+                        { text: "Leonardo da Vinci", image: "https://www.thefamouspeople.com/profiles/images/leonardo-da-vinci-1.jpg" },
+                        { text: "Claude Monet", image: "https://tse4.mm.bing.net/th?id=OIF.S9PPepAtF50igIb7bnCrrg&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Leonardo da Vinci"
+                },
+                {
+                    question: "What is the largest ocean on Earth?",
+                    options: [
+                        { text: "Atlantic", image: "https://tse3.mm.bing.net/th?id=OIP.u3vzzPz-7-Gs272_IJZGEAHaE9&pid=Api&P=0&h=180" },
+                        { text: "Indian", image: "https://tse4.mm.bing.net/th?id=OIP.BePdo4AAJKOkHNC9doKqPAHaEz&pid=Api&P=0&h=180" },
+                        { text: "Arctic", image: "https://tse4.mm.bing.net/th?id=OIP.uaX0bhFr7OEJsYIhV86bagHaFH&pid=Api&P=0&h=180" },
+                        { text: "Pacific", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e" }
+                    ],
+                    answer: "Pacific"
+                },
+                {
+                    question: "What is the currency of Japan?",
+                    options: [
+                        { text: "Yuan", image: "https://tse2.mm.bing.net/th?id=OIP.eGx1w1IeCe3ltycak3rb_QHaE8&pid=Api&P=0&h=180" },
+                        { text: "Yen", image: "https://tse3.mm.bing.net/th?id=OIP.aYMdoCzUOiSnOnvWYnNRDwHaFj&pid=Api&P=0&h=180" },
+                        { text: "Won", image: "https://tse3.mm.bing.net/th?id=OIP.AO-5gvPL33ngPlbeHK6H0gHaFj&pid=Api&P=0&h=180" },
+                        { text: "Dollar", image: "https://tse1.mm.bing.net/th?id=OIP.V7fPcsXkFljx8hhe7ou7SAHaFZ&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Yen"
+                }
+            ],
+            "Food & Drink": [
+                {
+                    question: "What is the main ingredient in guacamole?",
+                    options: [
+                        { text: "Tomato", image: "https://tse3.mm.bing.net/th?id=OIP.JMRIOYp2jmlICSlEma_3gQHaE7&pid=Api&P=0&h=180" },
+                        { text: "Avocado", image: "https://cdn.britannica.com/86/234086-050-53D32699/Whole-and-sliced-avocado-on-wooden-table.jpg" },
+                        { text: "Onion", image: "https://tse2.mm.bing.net/th?id=OIP.2y0DWzMi9MOKQNMfyfG1hQHaEK&pid=Api&P=0&h=180" },
+                        { text: "Pepper", image: "https://tse3.mm.bing.net/th?id=OIP.viZpsowHUHIb8QI8JGUKrwHaHa&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Avocado"
+                },
+                {
+                    question: "Which country is famous for sushi?",
+                    options: [
+                        { text: "China", image: "https://tse2.mm.bing.net/th?id=OIP.1g1HDRQiz9Jep5yQmEzepgHaE7&pid=Api&P=0&h=180" },
+                        { text: "Japan", image: "https://tse1.mm.bing.net/th?id=OIP.bSnTokC_c4OMgm-bm9OfyQHaE2&pid=Api&P=0&h=180" },
+                        { text: "Thailand", image: "https://tse3.mm.bing.net/th?id=OIP.EflknbgBWif4Ua5QwaVG9QHaE8&pid=Api&P=0&h=180" },
+                        { text: "Vietnam", image: "https://tse1.mm.bing.net/th?id=OIP.CxQ0xIIKPRAywa3quqgl0QHaE7&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Japan"
+                },
+                {
+                    question: "What type of pasta is shaped like small ears?",
+                    options: [
+                        { text: "Fusilli", image: "https://tse2.mm.bing.net/th?id=OIP.AlGyJiObxMVtF0yVb2pIqgHaFj&pid=Api&P=0&h=180" },
+                        { text: "Orecchiette", image: "https://tse4.mm.bing.net/th?id=OIP.96xferNQTFj2RmB2gc5h6gHaE3&pid=Api&P=0&h=180" },
+                        { text: "Penne", image: "https://tse4.mm.bing.net/th?id=OIP.ddFr3nSajpQc-UGkYqsMpQHaFj&pid=Api&P=0&h=180" },
+                        { text: "Ravioli", image: "https://tse1.mm.bing.net/th?id=OIP.Jxy--EkB5xWeOzonpnMGagHaHa&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Orecchiette"
+                },
+                {
+                    question: "What is the primary ingredient in beer?",
+                    options: [
+                        { text: "Wheat", image: "https://tse3.mm.bing.net/th?id=OIP.NAh4IyhEIJTdg53rhiw-kQHaFj&pid=Api&P=0&h=180" },
+                        { text: "Barley", image: "https://tse3.mm.bing.net/th?id=OIP.3cvsOEHf82vmcbBtBLZhHgHaE6&pid=Api&P=0&h=180" },
+                        { text: "Rice", image: "https://tse2.mm.bing.net/th?id=OIP.zuhzepwnCvZZUPJWi1Q3sQHaE7&pid=Api&P=0&h=180" },
+                        { text: "Corn", image: "https://tse1.mm.bing.net/th?id=OIP.PM1g_vfuz_-pkaKoXKWu7gHaHa&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Barley"
+                },
+                {
+                    question: "Which fruit is known as the 'king of fruits'?",
+                    options: [
+                        { text: "Mango", image: "https://tse3.mm.bing.net/th?id=OIP.VtSAAK_9j0RkpUCBx34DJQHaFF&pid=Api&P=0&h=180" },
+                        { text: "Durian", image: "https://tse4.mm.bing.net/th?id=OIP.Uc1rXlTQuxle7F-xaGmvJQHaE7&pid=Api&P=0&h=180" },
+                        { text: "Pineapple", image: "https://tse2.mm.bing.net/th?id=OIP.dsgoAOgGcmdPk_iZCWee4wHaFe&pid=Api&P=0&h=180" },
+                        { text: "Banana", image: "https://tse1.mm.bing.net/th?id=OIP.xW2SAK_9PbhzSXaH_7TTEwHaE8&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Durian"
+                }
+            ],
+            "Health": [
+                {
+                    question: "What vitamin is produced by the body when exposed to sunlight?",
+                    options: [
+                        { text: "Vitamin A", image: "https://as2.ftcdn.net/v2/jpg/02/75/40/57/1000_F_275405741_g5h8rIRmfAv0EnTbDJefUwAPOQ2FB08i.jpg" },
+                        { text: "Vitamin B", image: "https://img.freepik.com/premium-photo/gold-letter-b_379823-24247.jpg" },
+                        { text: "Vitamin C", image: "https://tse1.mm.bing.net/th?id=OIP._r8kl9We4PcRqpBMxFEj4AHaHa&pid=Api&P=0&h=180" },
+                        { text: "Vitamin D", image: "https://tse4.mm.bing.net/th?id=OIP.EVujqqN8HKwaJmv1J8Y3eQHaGF&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Vitamin D"
+                },
+                {
+                    question: "How many bones are in the human body?",
+                    options: [
+                        { text: "206", image: "https://tse2.mm.bing.net/th?id=OIP._k_rdxfc9YYf5mQrMvLwVgHaHa&pid=Api&P=0&h=180" },
+                        { text: "180", image: "https://tse2.mm.bing.net/th?id=OIP._k_rdxfc9YYf5mQrMvLwVgHaHa&pid=Api&P=0&h=180" },
+                        { text: "220", image: "https://tse2.mm.bing.net/th?id=OIP._k_rdxfc9YYf5mQrMvLwVgHaHa&pid=Api&P=0&h=180" },
+                        { text: "195", image: "https://tse2.mm.bing.net/th?id=OIP._k_rdxfc9YYf5mQrMvLwVgHaHa&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "206"
+                },
+                {
+                    question: "What is the largest organ in the human body?",
+                    options: [
+                        { text: "Liver", image: "https://tse4.mm.bing.net/th?id=OIP.0honCtHB0n_YjyL5HZ_I8AHaE8&pid=Api&P=0&h=180" },
+                        { text: "Skin", image: "https://tse3.mm.bing.net/th?id=OIP.Vg87kpk6FG_N1zG3QHBo1wHaEK&pid=Api&P=0&h=180" },
+                        { text: "Heart", image: "https://tse3.mm.bing.net/th?id=OIP.2EpzU6CIx-krAkTuZKwaQwHaJG&pid=Api&P=0&h=180" },
+                        { text: "Lungs", image: "https://img.freepik.com/premium-vector/healthy-human-lungs-human-body-part_156779-1197.jpg?w=2000" }
+                    ],
+                    answer: "Skin"
+                },
+                {
+                    question: "Which blood type is known as the universal donor?",
+                    options: [
+                        { text: "A", image: "https://as2.ftcdn.net/v2/jpg/02/75/40/57/1000_F_275405741_g5h8rIRmfAv0EnTbDJefUwAPOQ2FB08i.jpg" },
+                        { text: "B", image: "https://img.freepik.com/premium-photo/gold-letter-b_379823-24247.jpg" },
+                        { text: "AB", image: "https://c8.alamy.com/comp/2AW527D/initial-letter-ab-or-ba-logo-design-template-2AW527D.jpg" },
+                        { text: "O", image: "https://tse1.mm.bing.net/th?id=OIP.0xDiBOYqncdL4-nOlJ158wHaHa&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "O"
+                },
+                {
+                    question: "What is the normal human body temperature in Celsius?",
+                    options: [
+                        { text: "36", image: "https://cdn1.vectorstock.com/i/1000x1000/41/45/celsius-and-fahrenheit-thermometers-showing-hot-or-vector-13674145.jpg" },
+                        { text: "37", image: "https://cdn1.vectorstock.com/i/1000x1000/41/45/celsius-and-fahrenheit-thermometers-showing-hot-or-vector-13674145.jpg" },
+                        { text: "38", image: "https://cdn1.vectorstock.com/i/1000x1000/41/45/celsius-and-fahrenheit-thermometers-showing-hot-or-vector-13674145.jpg" },
+                        { text: "39", image: "https://cdn1.vectorstock.com/i/1000x1000/41/45/celsius-and-fahrenheit-thermometers-showing-hot-or-vector-13674145.jpg" }
+                    ],
+                    answer: "37"
+                }
+            ],
+            "Books": [
+                {
+                    question: "Who wrote 'To Kill a Mockingbird'?",
+                    options: [
+                        { text: "Harper Lee", image: "https://www.thefamouspeople.com/profiles/images/harper-lee-9.jpg" },
+                        { text: "J.K. Rowling", image: "https://tse4.mm.bing.net/th?id=OIP.T0fdx_qddhFSdnEGX-cDBwHaJ0&pid=Api&P=0&h=180" },
+                        { text: "George Orwell", image: "https://hips.hearstapps.com/hmg-prod/images/george-orwell.jpg?resize=1200:*" },
+                        { text: "Mark Twain", image: "https://tse3.mm.bing.net/th?id=OIP.B816Of6b8s_NRcMw0dU0NAHaI-&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Harper Lee"
+                },
+                {
+                    question: "What is the name of the wizarding school in Harry Potter?",
+                    options: [
+                        { text: "Beauxbatons", image: "https://i.redd.it/3ih0hxdqacvb1.jpg" },
+                        { text: "Hogwarts", image: "https://tse1.mm.bing.net/th?id=OIP.d1snf4ElAOFvUmAEG0IhoQHaEK&pid=Api&P=0&h=180" },
+                        { text: "Durmstrang", image: "https://tse1.mm.bing.net/th?id=OIP.R-gOjOd8o7iXdi2mDrNTQAHaEK&pid=Api&P=0&h=180" },
+                        { text: "Ilvermorny", image: "https://tse3.mm.bing.net/th?id=OIP.EkealKMU80oU_EGfuCxM-wHaDF&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Hogwarts"
+                },
+                {
+                    question: "Which book begins with 'It was the best of times, it was the worst of times'?",
+                    options: [
+                        { text: "A Tale of Two Cities", image: "https://tse1.mm.bing.net/th?id=OIP.lN095q-LlkUhCIPjIsiI0QHaKO&pid=Api&P=0&h=180" },
+                        { text: "Pride and Prejudice", image: "https://tse4.mm.bing.net/th?id=OIP.NGVYslLQv9LQr0iBtNpIYwHaJ4&pid=Api&P=0&h=180" },
+                        { text: "1984", image: "https://tse3.mm.bing.net/th?id=OIP.kbMxdBWJd1dEmqtbRqHa5wHaLX&pid=Api&P=0&h=180" },
+                        { text: "The Great Gatsby", image: "https://tse4.mm.bing.net/th?id=OIP.Vvg-RQ47bLcSAbFveXv5TAHaLH&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "A Tale of Two Cities"
+                },
+                {
+                    question: "Who wrote 'The Catcher in the Rye'?",
+                    options: [
+                        { text: "J.D. Salinger", image: "https://tse3.mm.bing.net/th?id=OIP.ihtIY6kj6aYsXIe3__8O9wHaKQ&pid=Api&P=0&h=180" },
+                        { text: "F. Scott Fitzgerald", image: "https://tse4.mm.bing.net/th?id=OIP.451FSGJBvoNbvzVaHjepQgHaJi&pid=Api&P=0&h=180" },
+                        { text: "Ernest Hemingway", image: "http://biografieonline.it/img/bio/Ernest_Hemingway_1.jpg" },
+                        { text: "John Steinbeck", image: "https://tse2.mm.bing.net/th?id=OIP.u4c9MQsB4-lfleilqOamiAHaJS&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "J.D. Salinger"
+                },
+                {
+                    question: "What is the name of the hobbit in 'The Lord of the Rings'?",
+                    options: [
+                        { text: "Bilbo Baggins", image: "https://tse2.mm.bing.net/th?id=OIP.T3OgqKhOPCC0YzZBqckwJAHaK-&pid=Api&P=0&h=180" },
+                        { text: "Frodo Baggins", image: "https://i.pinimg.com/originals/af/b0/bd/afb0bd9e20949979d122a373a714a92a.jpg" },
+                        { text: "Samwise Gamgee", image: "https://tse3.mm.bing.net/th?id=OIP.CgalYldqaxDizp6EbhThdAHaFj&pid=Api&P=0&h=180" },
+                        { text: "Pippin Took", image: "https://tse3.mm.bing.net/th?id=OIP.-0Zk8M0k1CFit2XGA0xaQAHaJW&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Frodo Baggins"
+                }
+            ],
+            "Films": [
+                {
+                    question: "Who directed 'The Godfather'?",
+                    options: [
+                        { text: "Martin Scorsese", image: "https://tse4.mm.bing.net/th?id=OIP.4T9f-tpMy7940M0y_WUXgQHaKb&pid=Api&P=0&h=180" },
+                        { text: "Francis Ford Coppola", image: "https://tse3.mm.bing.net/th?id=OIP.cpEFAeABkKYyWMZCrsGctgHaLI&pid=Api&P=0&h=180" },
+                        { text: "Steven Spielberg", image: "https://tse1.mm.bing.net/th?id=OIP.dtRg9zhL4DKy2B8XqK-NDgHaLG&pid=Api&P=0&h=180" },
+                        { text: "Quentin Tarantino", image: "https://tse2.mm.bing.net/th?id=OIP.YbQRuXt1sKp_wwjoVxD5xwHaJ6&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Francis Ford Coppola"
+                },
+                {
+                    question: "What is the name of the lion in 'The Lion King'?",
+                    options: [
+                        { text: "Mufasa", image: "https://tse2.mm.bing.net/th?id=OIP.GcZX-_LR6Oef2608CCFL8AHaKl&pid=Api&P=0&h=180" },
+                        { text: "Simba", image: "https://tse2.mm.bing.net/th?id=OIP.xjayGyACKXcy0gMUIJv7IwHaH8&pid=Api&P=0&h=180" },
+                        { text: "Scar", image: "https://tse4.mm.bing.net/th?id=OIP.jOoqMvaaTb3jcd086vaJLwHaJH&pid=Api&P=0&h=180" },
+                        { text: "Nala", image: "https://tse3.mm.bing.net/th?id=OIP.ZAiWrsjdHz4ROTcZDBwDhQHaIx&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Simba"
+                },
+                {
+                    question: "Which film won the first Oscar for Best Picture?",
+                    options: [
+                        { text: "Wings", image: "https://tse4.mm.bing.net/th?id=OIP.Ujnhp7FwJ1-hgqt4yMZowgHaLd&pid=Api&P=0&h=180" },
+                        { text: "The Jazz Singer", image: "https://tse4.mm.bing.net/th?id=OIP.Ao_pLgnObo06VzVT7l3l5wHaLH&pid=Api&P=0&h=180" },
+                        { text: "Sunrise", image: "https://tse1.mm.bing.net/th?id=OIP.3jQ3gQA-HEKWL30Bb9umbgHaK7&pid=Api&P=0&h=180" },
+                        { text: "Metropolis", image: "https://tse3.mm.bing.net/th?id=OIP.BS6Fxm7IFBwFbbzBYnzoqgHaLH&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Wings"
+                },
+                {
+                    question: "Who played Jack in 'Titanic image'?",
+                    options: [
+                        { text: "Brad Pitt", image: "https://tse4.mm.bing.net/th?id=OIP.fxbGHlo7u5oktrwvHoTz1QHaJW&pid=Api&P=0&h=180" },
+                        { text: "Leonardo DiCaprio", image: " https://tse2.mm.bing.net/th?id=OIP.qLB9fj5FTt2iww5diNzhUAHaLH&pid=Api&P=0&h=180" },
+                        { text: "Johnny Depp", image: "https://tse2.mm.bing.net/th?id=OIP.fZUoabYKyuuJ7xFVv4JkqAHaIm&pid=Api&P=0&h=180" },
+                        { text: "Tom Cruise", image: "https://tse3.mm.bing.net/th?id=OIF.ij3MiboEKzr%2bREJcyyCiGg&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Leonardo DiCaprio"
+                },
+                {
+                    question: "What is the name of the fictional African country in 'Black Panther'?",
+                    options: [
+                        { text: "Wakanda", image: "https://tse3.mm.bing.net/th?id=OIP.ay8jW-N2Cop2XVyzY7pcQAHaNG&pid=Api&P=0&h=180" },
+                        { text: "Zamunda", image: "https://tse4.mm.bing.net/th?id=OIP.nA16jgfveCQF7fjp6MmPAwHaHa&pid=Api&P=0&h=180" },
+                        { text: "Genovia", image: "https://tse2.mm.bing.net/th?id=OIP.PwWBXN22trFtTWzqxSUnyQHaEK&pid=Api&P=0&h=180" },
+                        { text: "Latvia", image: "https://tse2.mm.bing.net/th?id=OIP.EAWMk4DjC9MJoFabyOQX6QHaFF&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Wakanda"
+                }
+            ],
+            "Music": [
+                {
+                    question: "Who is known as the 'King of Pop'?",
+                    options: [
+                        { text: "Elvis Presley", image: "https://tse1.mm.bing.net/th?id=OIP.JpK-PgQNzdQl2H36wn8R0QHaIV&pid=Api&P=0&h=180" },
+                        { text: "Michael Jackson", image: "https://tse2.mm.bing.net/th?id=OIP.iwLecwzKUV___-q1HmmZcQHaHy&pid=Api&P=0&h=180" },
+                        { text: "Prince", image: "https://tse1.mm.bing.net/th?id=OIP.gboFc-sTlwMdnBxqzL0oyAHaHB&pid=Api&P=0&h=180" },
+                        { text: "David Bowie", image: "https://tse3.mm.bing.net/th?id=OIP.x2vmuEGt51xEpXTlvRgNzgHaKI&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Michael Jackson"
+                },
+                {
+                    question: "What instrument does a pianist play?",
+                    options: [
+                        { text: "Guitar", image: "https://tse2.mm.bing.net/th?id=OIP.UILm9H-2_cGn_F21bzL-CgHaI6&pid=Api&P=0&h=180" },
+                        { text: "Piano", image: "https://tse3.mm.bing.net/th?id=OIP.xmqol98hglGmUPTIslFYdQHaIh&pid=Api&P=0&h=180" },
+                        { text: "Violin", image: "https://tse3.mm.bing.net/th?id=OIP.RKTKKZtI0pmPMZoYB49EpgHaI5&pid=Api&P=0&h=180" },
+                        { text: "Drums", image: "https://tse3.mm.bing.net/th?id=OIP.fjJbz6Ie_aS9VFuJ8AJRxQHaG-&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Piano"
+                },
+                {
+                    question: "Which band performed 'Bohemian Rhapsody'?",
+                    options: [
+                        { text: "The Beatles", image: "https://tse1.mm.bing.net/th?id=OIP.szq4rFhNwEUyafEjiYoXAwHaJT&pid=Api&P=0&h=180" },
+                        { text: "Queen", image: "https://tse3.mm.bing.net/th?id=OIP.YdT8z1xtctKEpjfKjBkH5wHaFj&pid=Api&P=0&h=180" },
+                        { text: "Led Zeppelin", image: "https://tse1.mm.bing.net/th?id=OIP.viYWqHRxVz8YLdaEFTdyFAHaFj&pid=Api&P=0&h=180" },
+                        { text: "The Rolling Stones", image: "https://tse3.mm.bing.net/th?id=OIP.YdT8z1xtctKEpjfKjBkH5wHaFj&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Queen"
+                },
+                {
+                    question: "What genre is associated with Bob Marley?",
+                    options: [
+                        { text: "Rock", image: "https://tse1.mm.bing.net/th?id=OIP._fO9OeaHoQyiGM7k_4CimQHaEy&pid=Api&P=0&h=180" },
+                        { text: "Reggae", image: "https://tse4.mm.bing.net/th?id=OIP.OEyCawB1ixYMy3ERn6Xn3QHaHa&pid=Api&P=0&h=180" },
+                        { text: "Jazz", image: "https://tse1.mm.bing.net/th?id=OIP.a_g9u8aEuM_gpPRxfyP6OgHaEn&pid=Api&P=0&h=180" },
+                        { text: "Blues", image: "https://tse1.mm.bing.net/th?id=OIP.d160XWT9ZUizRbOgAcxC9AHaEJ&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Reggae"
+                },
+                {
+                    question: "Who wrote the song 'Imagine'?",
+                    options: [
+                        { text: "John Lennon", image: "https://tse1.mm.bing.net/th?id=OIP.PuaaeXczqmYQeOyTv-Hy4gHaKE&pid=Api&P=0&h=180" },
+                        { text: "Paul McCartney", image: "https://tse1.mm.bing.net/th?id=OIP.kUniN3kXQ4X0hDtFZsHtKAHaJt&pid=Api&P=0&h=180" },
+                        { text: "George Harrison", image: "https://tse1.mm.bing.net/th?id=OIP.T-VtkoztVGkw5B7LWyPrZAHaLH&pid=Api&P=0&h=180" },
+                        { text: "Ringo Starr", image: "https://tse2.mm.bing.net/th?id=OIP.QDksq9y902lMLBvEEFLM3gAAAA&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "John Lennon"
+                }
+            ],
+            "Theatre": [
+                {
+                    question: "Who wrote the play 'Romeo and Juliet'?",
+                    options: [
+                        { text: "William Shakespeare", image: "https://tse2.mm.bing.net/th?id=OIP.dVJyUyo6UrdFugMfWCUzmAHaHa&pid=Api&P=0&h=180" },
+                        { text: "Arthur Miller", image: "https://tse4.mm.bing.net/th?id=OIP.Rup9s92xsCts8mJHS6PXgwAAAA&pid=Api&P=0&h=180" },
+                        { text: "Tennessee", image: "https://tse4.mm.bing.net/th?id=OIP.1KSyqvsjcs7V5VyKXbfFDQHaE8&pid=Api&P=0&h=180" },
+                        { text: "George Shaw", image: "https://tse2.mm.bing.net/th?id=OIP.1o1OwrRcEv5UOMC2DPIzLgHaFp&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "William Shakespeare"
+                },
+                {
+                    question: "What is the longest-running musical?",
+                    options: [
+                        { text: "The Phantom of the opera", image: "https://tse2.mm.bing.net/th?id=OIP.2P50jNcnnwdkhZ3-9bcZ0AHaHa&pid=Api&P=0&h=180" },
+                        { text: "Cats", image: "https://tse3.mm.bing.net/th?id=OIP.g1m0K7yumfwkc_ub224a4AHaE7&pid=Api&P=0&h=180" },
+                        { text: "Les Misérables", image: "https://tse4.mm.bing.net/th?id=OIP.ueKtDfVzFRH8fQuegddSqgHaLH&pid=Api&P=0&h=180" },
+                        { text: "Chicago", image: "https://tse2.mm.bing.net/th?id=OIP.noO0jYmNTMowrlVwEOZ2mgHaEo&pid=Api&P=0&h=180" },
+                    ],
+                    answer: "The Phantom of the Opera"
+                },
+                {
+                    question: "In which city is the Broadway located?",
+                    options: [
+                        { text: "Los Angeles", image: "https://tse2.mm.bing.net/th?id=OIP.noO0jYmNTMowrlVwEOZ2mgHaEo&pid=Api&P=0&h=180" },
+                        { text: "Chicago", image: "https://tse2.mm.bing.net/th?id=OIP.noO0jYmNTMowrlVwEOZ2mgHaEo&pid=Api&P=0&h=180" },
+                        { text: "New York City", image: "https://tse2.mm.bing.net/th?id=OIP.noO0jYmNTMowrlVwEOZ2mgHaEo&pid=Api&P=0&h=180" },
+                        { text: "London", image: "https://images.london.com/photo-1505761675764" }
+                    ],
+                    answer: "New York City"
+                },
+                {
+                    question: "What is the name of the lion in the musical?",
+                    options: [
+                        { text: "Mufasa ", image: "https://tse2.mm.bing.net/th?id=OIP.-UW8GqbIdFkn0QcNwPywsgHaH0&pid=Api&P=0&h=180" },
+                        { text: "Simba", image: "https://tse2.mm.bing.net/th?id=OIP.xjayGyACKXcy0gMUIJv7IwHaH8&pid=Api&P=0&h=180" },
+                        { text: "Scar ", image: "https://tse4.mm.bing.net/th?id=OIP.SEoXVRB3GpU5dxeoikqt9gHaIq&pid=Api&P=0&h=180" },
+                        { text: "Nala ", image: "https://tse3.mm.bing.net/th?id=OIP.ZAiWrsjdHz4ROTcZDBwDhQHaIx&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Simba"
+                },
+                {
+                    question: "Who wrote 'The' Crucible'?",
+                    options: [
+                        { text: "Arthur Miller", image: "https://tse4.mm.bing.net/th?id=OIP.Rup9s92xsCts8mJHS6PXgwAAAA&pid=Api&P=0&h=180" },
+                        { text: "Eugene O'Neill", image: "https://tse4.mm.bing.net/th?id=OIP.HFuil-wlk7RX2hHyBGPcKgAAAA&pid=Api&P=0&h=180" },
+                        { text: "Henrik Ibsen", image: "https://tse3.mm.bing.net/th?id=OIP.xgkH5kSSb2bHCBtaw3pirQHaKJ&pid=Api&P=0&h=180" },
+                        { text: "Anton Chekhov", image: "https://tse3.mm.bing.net/th?id=OIP.MfhZN1tfCQUR39_rtEMhZgHaJf&pid=Api&P=0&h=180"}
+                    ],
+                    answer: "Arthur Miller"
+                }
+            ],
+            "Television": [
+                {
+                    question: "What is the name of the coffee shop in 'Friends'?",
+                    options: [
+                        { text: "Central Perk", image: "https://tse3.mm.bing.net/th?id=OIP.9qTvNmFlIchNkN3XYdBkkAHaEK&pid=Api&P=0&h=180" },
+                        { text: "Java Hut", image: "https://tse3.mm.bing.net/th?id=OIP.sVxx1inJcelMjd00IANhAgHaFc&pid=Api&P=0&h=180" },
+                        { text: "Coffee Corner", image: "https://tse1.mm.bing.net/th?id=OIP.mP8dv6zlM3pnz9EmO5mBywHaIQ&pid=Api&P=0&h=180" },
+                        { text: "Bean Scene", image: "https://tse2.mm.bing.net/th?id=OIP.nqYOKMknl0_70aWtfNcfxwHaKe&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Central Perk"
+                },
+                {
+                    question: "Who is the main character in 'Breaking Bad'?",
+                    options: [
+                        { text: "Jesse Pinkman", image: "https://tse4.mm.bing.net/th?id=OIP.2amlZYLn6UaXKMZ2M8w3MwHaJ4&pid=Api&P=0&h=180" },
+                        { text: "Walter White", image: "https://tse3.mm.bing.net/th?id=OIP.2Hww8QsZPyzAs7s2G834_AHaHf&pid=Api&P=0&h=180" },
+                        { text: "Saul Goodman", image: "https://tse3.mm.bing.net/th?id=OIP.Fe4Wf3dEufvdMVXFYYty9AHaJ4&pid=Api&P=0&h=180" },
+                        { text: "Hank Schrader", image: "https://tse1.mm.bing.net/th?id=OIP.olQXoQQd8FGZVB6Iwon3sAAAAA&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Walter White"
+                },
+                {
+                    question: "What is the name of the fictional continent in 'Game of Thrones'?",
+                    options: [
+                        { text: "Westeros", image: "https://tse2.mm.bing.net/th?id=OIP.QhLPk9432NH_L9RK8uhcpAHaJ4&pid=Api&P=0&h=180" },
+                        { text: "Essos", image: "https://tse4.mm.bing.net/th?id=OIP.23lmSH4ojXD1IoPk-fwDbQHaIZ&pid=Api&P=0&h=180" },
+                        { text: "Sothoryos", image: "https://tse2.mm.bing.net/th?id=OIP.lOKK_WpuSDJ0S5UT50KjKgHaJn&pid=Api&P=0&h=180" },
+                        { text: "Ulthos", image: "https://tse1.mm.bing.net/th?id=OIP.eGN58L1kYdPdiLxa8v0OkQHaHf&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Westeros"
+                },
+                {
+                    question: "Which show features a character named Homer Simpson?",
+                    options: [
+                        { text: "Family Guy", image: "https://tse4.mm.bing.net/th?id=OIP.NOGn1xm5nBMnP0rEL_MyXQHaHa&pid=Api&P=0&h=180" },
+                        { text: "The Simpsons", image: "https://tse2.mm.bing.net/th?id=OIP.csgjYEbAlvR41CZWX4OrAwHaFj&pid=Api&P=0&h=180" },
+                        { text: "South Park", image: "https://tse3.mm.bing.net/th?id=OIP.R8ThT0mSZXKyA3OiOB3XGAHaF7&pid=Api&P=0&h=180" },
+                        { text: "Futurama", image: "https://tse1.mm.bing.net/th?id=OIP.ZdONFkjhCi9YdwPzTG31eAHaF7&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "The Simpsons"
+                },
+                {
+                    question: "What is the name of the doctor in 'Doctor Who'?",
+                    options: [
+                        { text: "The Doctor", image: "https://tse4.mm.bing.net/th?id=OIP.Hj07nCkW6_c2Enmzkyw-MwHaG9&pid=Api&P=0&h=180" },
+                        { text: "Doctor Strange", image: "https://tse4.mm.bing.net/th?id=OIP.Hj07nCkW6_c2Enmzkyw-MwHaG9&pid=Api&P=0&h=180" },
+                        { text: "Doctor Smith", image: "https://tse4.mm.bing.net/th?id=OIP.Hj07nCkW6_c2Enmzkyw-MwHaG9&pid=Api&P=0&h=180" },
+                        { text: "Doctor Jones", image: "https://tse4.mm.bing.net/th?id=OIP.Hj07nCkW6_c2Enmzkyw-MwHaG9&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "The Doctor"
+                }
+            ],
+            "Video Games": [
+                {
+                    question: "What is the name of the plumber in 'Super Mario'?",
+                    options: [
+                        { text: "Luigi", image: "https://tse3.mm.bing.net/th?id=OIP.NRbQQg9HoV5kX-9coSqsvAHaMw&pid=Api&P=0&h=180" },
+                        { text: "Mario", image: "https://tse3.mm.bing.net/th?id=OIP.NRbQQg9HoV5kX-9coSqsvAHaMw&pid=Api&P=0&h=180" },
+                        { text: "Wario", image: "https://tse3.mm.bing.net/th?id=OIP.NRbQQg9HoV5kX-9coSqsvAHaMw&pid=Api&P=0&h=180" },
+                        { text: "Yoshi", image: "https://tse3.mm.bing.net/th?id=OIP.NRbQQg9HoV5kX-9coSqsvAHaMw&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Mario"
+                },
+                {
+                    question: "Which game features a character named Master Chief?",
+                    options: [
+                        { text: "Halo", image: "https://tse1.mm.bing.net/th?id=OIP.kipFiITqjCKvMrVCXIcyvQHaEo&pid=Api&P=0&h=180" },
+                        { text: "Call of Duty", image: "https://tse3.mm.bing.net/th?id=OIP.UPP-US6AkDiLqpbdxot6gwHaEq&pid=Api&P=0&h=180" },
+                        { text: "Gears of War", image: "https://tse2.mm.bing.net/th?id=OIP.SQWYg_EbSfS5PnUYSXnJDAHaEK&pid=Api&P=0&h=180" },
+                        { text: "Destiny", image: "https://tse2.mm.bing.net/th?id=OIP.J9o1Soryeek4rJIgfnLYpwHaLI&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Halo"
+                },
+                {
+                    question: "What is the best-selling video game of all time?",
+                    options: [
+                        { text: "Tetris", image: "https://tse3.mm.bing.net/th?id=OIP.TzSz_t5t4B_pjNQ7S6DeHQHaE7&pid=Api&P=0&h=180" },
+                        { text: "Minecraft", image: "https://tse3.mm.bing.net/th?id=OIP.r99VwMgSDSzjRFcKg2QZJwHaHa&pid=Api&P=0&h=180" },
+                        { text: "Grand Theft Auto V", image: "https://tse4.mm.bing.net/th?id=OIP.JAEg_XVBsM35eQE3dMqUqwHaHa&pid=Api&P=0&h=180" },
+                        { text: "Wii Sports", image: "https://tse2.mm.bing.net/th?id=OIP.gb33_r_4ucS1ML5o1LYZtQHaKr&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Minecraft"
+                },
+                {
+                    question: "Which company developed 'The Legend of Zelda'?",
+                    options: [
+                        { text: "Sony", image: "https://tse3.mm.bing.net/th?id=OIP.O6MZxDBrZ2v_9TVdXI-I0wHaGl&pid=Api&P=0&h=180" },
+                        { text: "Microsoft", image: "https://tse2.mm.bing.net/th?id=OIP.wAKg-Fwc3o_qIuGNQEk5lgHaFY&pid=Api&P=0&h=180" },
+                        { text: "Nintendo", image: "https://tse2.mm.bing.net/th?id=OIP.Qfh6Hi1PiAa9KZTNOxwA6AHaFj&pid=Api&P=0&h=180" },
+                        { text: "Sega", image: "https://tse4.mm.bing.net/th?id=OIP.1DZ_MzkWbi5WGfoZWGHA4wHaEo&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Nintendo"
+                },
+                {
+                    question: "What is the name of the island in 'Fortnite'?",
+                    options: [
+                        { text: "Tilted Towers", image: "https://tse4.mm.bing.net/th?id=OIP.k1rnKN25u_AQKcdCmCGq2gHaEK&pid=Api&P=0&h=180" },
+                        { text: "Battle Island", image: "https://tse2.mm.bing.net/th?id=OIP.2T5QXh5mkiCScmCp2oFH0gHaHa&pid=Api&P=0&h=180" },
+                        { text: "The Map", image: "https://tse3.mm.bing.net/th?id=OIP.aGTxTIKYqtEY-BlMA_W-6QHaEs&pid=Api&P=0&h=180" },
+                        { text: "No specific name", image: "https://tse2.mm.bing.net/th?id=OIP.1klvBovPloCVnGKfEDUHKQHaHa&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "No specific name"
+                }
+            ],
+            "Board Games": [
+                {
+                    question: "Which game involves buying properties and building hotels?",
+                    options: [
+                        { text: "Monopoly", image: "https://tse4.mm.bing.net/th?id=OIP.Obip_QuOlJr0TS8wBDIFaAHaHk&pid=Api&P=0&h=180" },
+                        { text: "Scrabble", image: "https://tse2.mm.bing.net/th?id=OIP.GSZWTkN801eGR8v5XuJ8gQHaE8&pid=Api&P=0&h=180" },
+                        { text: "Clue", image: "https://tse2.mm.bing.net/th?id=OIP.ACFc6UxnMdui9X-VQVxSmQHaHa&pid=Api&P=0&h=180" },
+                        { text: "Risk", image: "https://tse3.mm.bing.net/th?id=OIP.HCxj4D47jT6eyDPZLEnqnAHaEw&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Monopoly"
+                },
+                {
+                    question: "What is the objective of 'Chess'?",
+                    options: [
+                        { text: "Capture the king", image: "https://tse1.mm.bing.net/th?id=OIP.zEhqCixo7wqsAvN5dNTQQAHaHa&pid=Api&P=0&h=180" },
+                        { text: "Capture the queen", image: "https://tse1.mm.bing.net/th?id=OIP.zEhqCixo7wqsAvN5dNTQQAHaHa&pid=Api&P=0&h=180" },
+                        { text: "Take all pieces", image: "https://tse1.mm.bing.net/th?id=OIP.zEhqCixo7wqsAvN5dNTQQAHaHa&pid=Api&P=0&h=180" },
+                        { text: "Reach the other side", image: "https://tse1.mm.bing.net/th?id=OIP.zEhqCixo7wqsAvN5dNTQQAHaHa&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Capture the king"
+                },
+                {
+                    question: "Which game involves creating words from letter tiles?",
+                    options: [
+                        { text: "Scrabble", image: "https://tse2.mm.bing.net/th?id=OIP.GSZWTkN801eGR8v5XuJ8gQHaE8&pid=Api&P=0&h=180" },
+                        { text: "Boggle", image: "https://tse3.mm.bing.net/th?id=OIP.Z_EkXfygmaKcWwG3VHb1hQHaHD&pid=Api&P=0&h=180" },
+                        { text: "Carcassonne", image: "https://tse4.mm.bing.net/th?id=OIP.isgXUJ22Xm2u393UlvrJMgHaFj&pid=Api&P=0&h=180" },
+                        { text: "Ticket to Ride", image: "https://tse4.mm.bing.net/th?id=OIP.PncJ-a_B8XBpORC-VmAqEQHaFj&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Scrabble"
+                },
+                {
+                    question: "In which game do you solve a murder mystery?",
+                    options: [
+                        { text: "Clue", image: "https://tse2.mm.bing.net/th?id=OIP.ACFc6UxnMdui9X-VQVxSmQHaHa&pid=Api&P=0&h=180" },
+                        { text: "Risk", image: "https://tse3.mm.bing.net/th?id=OIP.HCxj4D47jT6eyDPZLEnqnAHaEw&pid=Api&P=0&h=180" },
+                        { text: "Settlers of Catan", image: "https://tse3.mm.bing.net/th?id=OIP.eJKzXSykM7v9AWPQuGpfkgHaFj&pid=Api&P=0&h=180" },
+                        { text: "Checkers", image: "https://tse1.mm.bing.net/th?id=OIP.PxXAMEiRIsqx4-KzBFE2gAHaF-&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Clue"
+                },
+                {
+                    question: "Which game involves conquering territories with armies?",
+                    options: [
+                        { text: "Risk", image: "https://tse3.mm.bing.net/th?id=OIP.HCxj4D47jT6eyDPZLEnqnAHaEw&pid=Api&P=0&h=180" },
+                        { text: "Monopoly", image: "https://tse4.mm.bing.net/th?id=OIP.Obip_QuOlJr0TS8wBDIFaAHaHk&pid=Api&P=0&h=180" },
+                        { text: "Candy Land", image: "https://tse4.mm.bing.net/th?id=OIP.kafEVQ0uObZgqFK6M1FoEAHaIq&pid=Api&P=0&h=180" },
+                        { text: "Chutes and Ladders", image: "https://tse1.mm.bing.net/th?id=OIP.dMwpQCJNxrLXAL32CIqjTgHaHa&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Risk"
+                }
+            ],
+            "Science & Nature": [
+                {
+                    question: "What gas do plants use for photosynthesis?",
+                    options: [
+                        { text: "Oxygen", image: "https://tse4.mm.bing.net/th?id=OIP.4SCCExUVvymJ6IYp6W0uogHaIL&pid=Api&P=0&h=180" },
+                        { text: "Carbon Dioxide", image: "https://tse2.mm.bing.net/th?id=OIP.OkwNpNDegRTUUYjYONdDFgHaHa&pid=Api&P=0&h=180" },
+                        { text: "Nitrogen", image: "https://tse1.mm.bing.net/th?id=OIP.p7vSc2NuEd8CHYbSpXJrJgHaH6&pid=Api&P=0&h=180" },
+                        { text: "Hydrogen", image: "https://tse4.mm.bing.net/th?id=OIP.N0m6Am-z2fwoffqIdZhU5wHaE8&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Carbon Dioxide"
+                },
+                {
+                    question: "What is the chemical symbol for gold?",
+                    options: [
+                        { text: "Au", image: "https://tse4.mm.bing.net/th?id=OIP.kCaX13ohhgfA7EIzcpxbMwHaDp&pid=Api&P=0&h=180" },
+                        { text: "Ag", image: "https://tse3.mm.bing.net/th?id=OIP.UCUBbc-0NcLNLvv9yHkNSgHaFj&pid=Api&P=0&h=180" },
+                        { text: "Fe", image: "https://tse3.mm.bing.net/th?id=OIP.wn5TC7qohF2h3LqS1wbftAHaHa&pid=Api&P=0&h=180" },
+                        { text: "Cu", image: "https://tse1.mm.bing.net/th?id=OIP.TRZ2wvB9oHrB08-eU1uOcQHaH6&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Au"
+                },
+                {
+                    question: "Which animal is the largest mammal?",
+                    options: [
+                        { text: "Elephant", image: "https://tse1.mm.bing.net/th?id=OIP.Yti_irDs93d67CNFjT0BTQHaHa&pid=Api&P=0&h=180" },
+                        { text: "Blue Whale", image: "https://tse3.mm.bing.net/th?id=OIP.1iXN3_2SgRUEWpbk-9Ct_AHaE1&pid=Api&P=0&h=180" },
+                        { text: "Giraffe", image: "https://tse3.mm.bing.net/th?id=OIP.TvMgTUln_4oiWr4VzTlJ0AHaKB&pid=Api&P=0&h=180" },
+                        { text: "Hippopotamus", image: "https://tse3.mm.bing.net/th?id=OIP.0I_BNCFbbFZ8goJtbu5yuAAAAA&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Blue Whale"
+                },
+                {
+                    question: "What is the primary source of energy for Earth's climate system?",
+                    options: [
+                        { text: "The Moon", image: "https://tse4.mm.bing.net/th?id=OIP.6f5ZEeT1bM05vEOyFk2a7AHaHa&pid=Api&P=0&h=180" },
+                        { text: "The Sun", image: "https://tse3.mm.bing.net/th?id=OIP.uT7L1dhr94pmvAViGQ0a1AHaHa&pid=Api&P=0&h=180" },
+                        { text: "Geothermal Heat", image: "https://tse4.mm.bing.net/th?id=OIP.-EM58j7_Szhs2NfJzcqJMQHaHb&pid=Api&P=0&h=180" },
+                        { text: "Ocean Currents", image: "https://tse2.mm.bing.net/th?id=OIP.rHw8wba8ErcWQzZRryfDPgHaF_&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "The Sun"
+                },
+                {
+                    question: "What is the hardest natural substance on Earth?",
+                    options: [
+                        { text: "Diamond", image: "https://tse3.mm.bing.net/th?id=OIP.yA8T7-RCkJc87-xJu8zOogHaFj&pid=Api&P=0&h=180" },
+                        { text: "Quartz", image: "https://tse3.mm.bing.net/th?id=OIP.d0kfabNPABZ6fMrfMKNf9gHaF7&pid=Api&P=0&h=180" },
+                        { text: "Granite", image: "https://tse2.mm.bing.net/th?id=OIP.dnnDgf435nCciYGZvRO-TQHaFQ&pid=Api&P=0&h=180" },
+                        { text: "Obsidian", image: "https://tse1.mm.bing.net/th?id=OIP.wRhCJzJjwZis96MYW1Z49AHaHa&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Diamond"
+                }
+            ],
+            "Computers": [
+                {
+                    question: "What does CPU stand for?",
+                    options: [
+                        { text: "Central Processing Unit", image: "https://tse2.mm.bing.net/th?id=OIP.a4BBnORTKz-gc5BfGulBiQHaGD&pid=Api&P=0&h=180" },
+                        { text: "Computer Processing Unit", image: "https://tse2.mm.bing.net/th?id=OIP.a4BBnORTKz-gc5BfGulBiQHaGD&pid=Api&P=0&h=180" },
+                        { text: "Central Power Unit", image: "https://tse2.mm.bing.net/th?id=OIP.a4BBnORTKz-gc5BfGulBiQHaGD&pid=Api&P=0&h=180" },
+                        { text: "Computer Power Unit", image: "https://tse2.mm.bing.net/th?id=OIP.a4BBnORTKz-gc5BfGulBiQHaGD&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Central Processing Unit"
+                },
+                {
+                    question: "Which language is commonly used for web development?",
+                    options: [
+                        { text: "Python", image: "https://tse4.mm.bing.net/th?id=OIP.0eDk2LFmQbHPZS4ZDWK78gHaHa&pid=Api&P=0&h=180" },
+                        { text: "JavaScript", image: "https://tse4.mm.bing.net/th?id=OIP.Oag0dh4MINdG_qxOzJMoiwHaIB&pid=Api&P=0&h=180" },
+                        { text: "C++", image: "https://tse4.mm.bing.net/th?id=OIF.bH9f9Y4z5YwG8d7fhzbTjA&pid=Api&P=0&h=180" },
+                        { text: "Java", image: "https://tse3.mm.bing.net/th?id=OIP.wyY7fa7FHVIsdcoGwdybXQHaHa&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "JavaScript"
+                },
+                {
+                    question: "What is the main function of an operating system?",
+                    options: [
+                        { text: "Run applications", image: "https://tse1.mm.bing.net/th?id=OIP.FlI0-ypuue_EhQ2WXohoAQHaEp&pid=Api&P=0&h=180" },
+                        { text: "Manage hardware", image: "https://tse1.mm.bing.net/th?id=OIP.FlI0-ypuue_EhQ2WXohoAQHaEp&pid=Api&P=0&h=180" },
+                        { text: "Store data", image: "https://tse1.mm.bing.net/th?id=OIP.FlI0-ypuue_EhQ2WXohoAQHaEp&pid=Api&P=0&h=180" },
+                        { text: "Display graphics", image: "https://tse1.mm.bing.net/th?id=OIP.FlI0-ypuue_EhQ2WXohoAQHaEp&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Manage hardware"
+                },
+                {
+                    question: "What does HTML stand for?",
+                    options: [
+                        { text: "HyperText Markup Language", image: "https://tse2.mm.bing.net/th?id=OIP.U1PL1zDlzqRGPcRrovytgAHaFj&pid=Api&P=0&h=180" },
+                        { text: "HighText Markup Language", image: "https://tse2.mm.bing.net/th?id=OIP.U1PL1zDlzqRGPcRrovytgAHaFj&pid=Api&P=0&h=180" },
+                        { text: "HyperTool Markup Language", image: "https://tse2.mm.bing.net/th?id=OIP.U1PL1zDlzqRGPcRrovytgAHaFj&pid=Api&P=0&h=180" },
+                        { text: "HomeText Markup Language", image: "https://tse2.mm.bing.net/th?id=OIP.U1PL1zDlzqRGPcRrovytgAHaFj&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "HyperText Markup Language"
+                },
+                {
+                    question: "What is the purpose of a firewall?",
+                    options: [
+                        { text: "Speed up internet", image: "https://tse3.mm.bing.net/th?id=OIP.TiRApc_DI5-1UvrgC-rkhwHaEZ&pid=Api&P=0&h=180" },
+                        { text: "Protect against viruses", image: "https://tse3.mm.bing.net/th?id=OIP.TiRApc_DI5-1UvrgC-rkhwHaEZ&pid=Api&P=0&h=180" },
+                        { text: "Block unauthorized access", image: "https://tse3.mm.bing.net/th?id=OIP.TiRApc_DI5-1UvrgC-rkhwHaEZ&pid=Api&P=0&h=180" },
+                        { text: "Store files", image: "https://tse3.mm.bing.net/th?id=OIP.TiRApc_DI5-1UvrgC-rkhwHaEZ&pid=Api&P=0&h=180" }
+                    ],
+                    answer: "Block unauthorized access"
+                }
+            ]
+        };
+
+        let currentCategory = null;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+        let timerInterval = null;
+        let timeLeft = 15; 
+
+        function selectCategory(category) {
+            currentCategory = category;
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+            document.getElementById('category-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('category-title').textContent = category;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const questionData = quizData[currentCategory][currentQuestionIndex];
+            document.getElementById('question-text').textContent = `Q${currentQuestionIndex + 1}: ${questionData.question}`;
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            questionData.options.forEach(option => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option-box bg-white/90 backdrop-blur-sm border-2 border-blue-300 rounded-lg p-3 flex items-center cursor-pointer text-gray-800';
+                optionDiv.innerHTML = `
+                    <img src="${option.image}" alt="Image for ${option.text}" class="option-image">
+                    <span>${option.text}</span>
+                `;
+                optionDiv.onclick = () => selectOption(option.text, optionDiv, questionData.answer);
+                optionsContainer.appendChild(optionDiv);
+            });
+            document.getElementById('next-btn').classList.add('hidden');
+            startTimer(questionData.answer); 
+        }
+
+        function startTimer(correctAnswer) {
+            timeLeft = 15; 
+            document.getElementById('timer').textContent = `Time Left: ${timeLeft}s`;
+            clearInterval(timerInterval); 
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = `Time Left: ${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    userAnswers[currentQuestionIndex] = null; 
+                    const options = document.querySelectorAll('.option-box');
+                    options.forEach(opt => {
+                        opt.onclick = null; 
+                        if (opt.querySelector('span').textContent === correctAnswer) {
+                            opt.classList.add('correct'); 
+                        }
+                    });
+                    document.getElementById('next-btn').classList.remove('hidden');
+                }
+            }, 1000);
+        }
+
+        function selectOption(option, optionDiv, correctAnswer) {
+            clearInterval(timerInterval); 
+            userAnswers[currentQuestionIndex] = option;
+            const options = document.querySelectorAll('.option-box');
+            options.forEach(opt => opt.onclick = null);
+            options.forEach(opt => {
+                const optText = opt.querySelector('span').textContent;
+                if (optText === option) {
+                    if (option === correctAnswer) {
+                        opt.classList.add('correct');
+                        score++; 
+                    } else {
+                        opt.classList.add('incorrect');
+                    }
+                }
+                if (optText === correctAnswer && option !== correctAnswer) {
+                    opt.classList.add('correct');
+                }
+            });
+
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        document.getElementById('next-btn').onclick = () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData[currentCategory].length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        };
+
+        function showResult() {
+            clearInterval(timerInterval);
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('score-text').textContent = `Your Score: ${score} out of ${quizData[currentCategory].length}`;
+        }
+
+        function restartQuiz() {
+            clearInterval(timerInterval);
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('category-screen').classList.remove('hidden');
+        }
+        document.getElementById('back-btn').onclick = () => {
+            document.getElementById('popup').style.display = 'flex';
+        };
+
+        document.getElementById('popup-yes').onclick = () => {
+            clearInterval(timerInterval);
+            document.getElementById('popup').style.display = 'none';
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('category-screen').classList.remove('hidden');
+            currentCategory = null;
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+        };
+
+        document.getElementById('popup-no').onclick = () => {
+            document.getElementById('popup').style.display = 'none';
+        };
+    </script>
+</body>
+</html>
